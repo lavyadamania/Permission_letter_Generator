@@ -1,26 +1,177 @@
 <!doctype html>
 <html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Permission Letter Generator — Zephyr '25</title>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Permission Letter Generator — Zephyr '25</title>
 
-  <link href="https://unpkg.com/tabulator-tables@5.6.0/dist/css/tabulator.min.css" rel="stylesheet">
-  <script src="https://unpkg.com/tabulator-tables@5.6.0/dist/js/tabulator.min.js"></script>
+    <link href="https://unpkg.com/tabulator-tables@5.6.0/dist/css/tabulator.min.css" rel="stylesheet">
+    <script src="https://unpkg.com/tabulator-tables@5.6.0/dist/js/tabulator.min.js"></script>
 
-  <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/jspdf-autotable@3.5.25/dist/jspdf.plugin.autotable.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/jspdf-autotable@3.5.25/dist/jspdf.plugin.autotable.js"></script>
 
-  <style>
-    body{font-family:Inter,system-ui,Arial;max-width:1200px;margin:18px auto;padding:12px;background:#f6f8fb}
-    h1{font-size:1.4rem;margin:0}
-    .grid{display:grid;grid-template-columns:1fr 450px;gap:14px;margin-top:14px}
-    .card{background:#fff;border:1px solid #e6e9ee;padding:12px;border-radius:10px;box-shadow:0 6px 18px rgba(12,20,30,0.03)}
-    label{display:block;font-weight:600;margin:8px 0 6px}
-    textarea,input,button{width:100%;padding:8px;border-radius:8px;border:1px solid #ddd}
-    button{cursor:pointer;background:#2563eb;color:#fff;font-weight:600;margin-top:6px}
-    .controls button{width:auto;margin:3px;font-size:.85rem;padding:6px 10px}
-  </style>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            max-width: 1200px;
+            margin: 24px auto;
+            padding: 20px;
+            background-color: #f0f4f8; /* Softer background color */
+            color: #333;
+        }
+
+        h1 {
+            font-size: 2.2rem;
+            color: #1e3a8a; /* Dark blue heading */
+            margin-bottom: 20px;
+            text-align: center;
+            font-weight: 700;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: 1fr 450px;
+            gap: 24px; /* Increased gap */
+            margin-top: 24px;
+        }
+
+        .card {
+            background: #ffffff;
+            border: 1px solid #d1d8e0; /* Softer border */
+            padding: 24px; /* Increased padding */
+            border-radius: 16px; /* Smoother corners */
+            box-shadow: 0 8px 24px rgba(17, 24, 39, 0.08); /* More prominent shadow */
+            transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+        }
+
+        .card:hover {
+            transform: translateY(-5px); /* Lift effect on hover */
+            box-shadow: 0 12px 30px rgba(17, 24, 39, 0.12);
+        }
+
+        label {
+            display: block;
+            font-weight: 700;
+            margin: 16px 0 8px; /* Increased margins */
+            color: #4a5568; /* Darker label text */
+            font-size: 1.1rem;
+        }
+
+        label:first-of-type {
+            margin-top: 0;
+        }
+
+        textarea, input[type="text"], input[type="date"], input[type="file"] {
+            width: 100%;
+            padding: 12px; /* Increased padding */
+            border-radius: 8px;
+            border: 1px solid #c0d1e5;
+            font-family: inherit;
+            font-size: 1rem;
+            box-sizing: border-box;
+            background-color: #f7fafc; /* Light input background */
+            transition: border-color 0.3s, box-shadow 0.3s;
+        }
+
+        textarea:focus, input:focus {
+            outline: none;
+            border-color: #3b82f6; /* Focus color */
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
+        }
+        
+        textarea {
+            min-height: 120px;
+            resize: vertical;
+        }
+
+        button {
+            width: 100%;
+            padding: 12px;
+            border-radius: 8px;
+            border: none;
+            cursor: pointer;
+            font-weight: 700;
+            margin-top: 16px;
+            transition: background-color 0.3s, transform 0.1s;
+            font-size: 1rem;
+        }
+
+        #parseBtn {
+            background-color: #4f87f6; /* Blue shade */
+            color: #fff;
+        }
+
+        #parseBtn:hover {
+            background-color: #3b74d3;
+            transform: translateY(-2px);
+        }
+
+        #genPdf {
+            background-color: #10b981; /* Green shade */
+        }
+
+        #genPdf:hover {
+            background-color: #0d9d6e;
+            transform: translateY(-2px);
+        }
+
+        button:disabled {
+            background-color: #b0c0d1;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        .controls {
+            display: flex;
+            gap: 8px;
+            margin-top: 10px;
+        }
+
+        .controls button {
+            flex-grow: 1;
+            width: auto;
+            margin: 0;
+            font-size: 0.9rem;
+            padding: 8px 12px;
+            background-color: #e2e8f0;
+            color: #4a5568;
+            font-weight: 600;
+            border: 1px solid #cbd5e1;
+        }
+        
+        .controls button:hover {
+            background-color: #cbd5e1;
+            transform: translateY(-1px);
+        }
+
+        hr {
+            border: 0;
+            border-top: 1px solid #e2e8f0;
+            margin: 24px 0;
+        }
+        
+        strong {
+            display: block;
+            margin-bottom: 12px;
+            color: #1e3a8a;
+            font-size: 1.2rem;
+            font-weight: 700;
+        }
+
+        #status {
+            margin-top: 10px;
+            font-weight: 600;
+            color: #3b82f6;
+            font-style: italic;
+        }
+        
+        .tabulator {
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+        }
+    </style>
 </head>
 <body>
   <h1>Permission Letter Generator — Zephyr '25</h1>
@@ -30,21 +181,27 @@
       <label>1) Banner</label>
       <input id="bannerFile" type="file" accept="image/*" />
 
-      <label style="margin-top:10px">2) Header continuation</label>
-      <div><b>The following students are going for PR and Sponsorship for Zephyr '25 </b></div>
-      <input id="headerContinuation" value="from 11:30 a.m. to 5:30 p.m." />
+      <label>2) Header continuation</label>
+      <textarea id="headerContinuation">The following students are going for PR and Sponsorship for Zephyr '25</textarea>
 
-      <label style="margin-top:10px">3) Date</label>
+      <label>3) Date</label>
       <input id="datePicker" type="date" />
 
-      <label style="margin-top:10px">4) Paste Student Data</label>
+      <label>4) Paste Student Data</label>
       <textarea id="studentBox"></textarea>
 
-      <label style="margin-top:10px">5) Paste Core Members Data</label>
+      <label>5) Paste Core Members Data</label>
       <textarea id="coreBox"></textarea>
+      
+      <label>6) Signature Details</label>
+      <input id="signatureName" type="text" placeholder="Name (e.g., Lavya Damania)" value="Lavya Damania"/>
+      <input id="signatureTitle" type="text" placeholder="Title (e.g., Chairperson)" value="Chairperson"/>
+      <input id="signatureOrg" type="text" placeholder="Organization (e.g., Tcet Acm)" value="Tcet Acm"/>
+      
 
       <button id="parseBtn">Parse Data</button>
-      <button id="genPdf" style="background:#059669">Generate PDF</button>
+      <div id="status"></div>
+      <button id="genPdf">Generate PDF</button>
     </div>
 
     <div class="card">
@@ -67,44 +224,55 @@
   <script>
     let studentsTable, coreTable;
 
-    // Parse text to rows
-    function parseText(text, yearLabel=""){
+    function parseText(text, yearLabel = "") {
       const lines = text.split(/\r?\n/).map(l => l.trim()).filter(Boolean);
       let rows = [];
       let currentYear = yearLabel;
+      const yearKeywords = ["SE", "TE", "BE", "FE", "CORE"];
+
       for (const line of lines) {
-        if (/^(TE|SE|BE|FE)/i.test(line)) {
-          currentYear = line;
+        const upperLine = line.toUpperCase();
+        if (yearKeywords.includes(upperLine)) {
+          currentYear = upperLine;
           continue;
         }
-        const parts = line.split(/\s+/);
-        // Find the last numeric part, which is the roll number.
-        let rollIndex = -1;
-        for (let i = parts.length - 1; i >= 0; i--) {
-          if (!isNaN(parts[i]) && parts[i].trim() !== '') {
-            rollIndex = i;
-            break;
+
+        const parts = line.split(/\s+/).filter(Boolean);
+        let nameParts = [];
+        let roll = "";
+        let division = "";
+        let parsedYear = "";
+
+        for (const part of parts) {
+          const upperPart = part.toUpperCase();
+          
+          if (yearKeywords.includes(upperPart)) {
+            parsedYear = upperPart;
+          } else if (part.length === 1 && /[A-Z]/.test(upperPart)) {
+            division = upperPart;
+          } else if (!isNaN(part) && !isNaN(parseFloat(part)) && isFinite(part)) {
+            roll = part;
+          } else {
+            nameParts.push(part);
           }
         }
-        // If a roll number is found, assume the part after it is the division and the parts before it are the name.
-        if (rollIndex !== -1 && rollIndex < parts.length - 1) {
-          const name = parts.slice(0, rollIndex).join(" ");
-          const roll = parts[rollIndex];
-          const div = parts.slice(rollIndex + 1).join(" ");
-          rows.push({ sr: rows.length + 1, name, roll, division: div, year: currentYear });
+
+        const name = nameParts.join(" ");
+        const finalYear = parsedYear || currentYear;
+
+        if (name.trim() && roll && division) {
+          rows.push({ sr: 0, name: name.trim(), roll, division, year: finalYear });
         }
       }
       return rows;
     }
 
-    // Auto-update Sr numbers
     function updateSr(table){
       let data=table.getData();
       data.forEach((row,i)=>row.sr=i+1);
       table.replaceData(data);
     }
 
-    // Init Tabulator tables
     function initTables(){
       const baseCols=[
         {title:"Sr",field:"sr",hozAlign:"center",width:50},
@@ -115,28 +283,71 @@
       ];
       studentsTable=new Tabulator("#students-table",{
         height:"260px",layout:"fitColumns",columns:baseCols,
-        dataChanged:function(){updateSr(studentsTable);}
+        dataChanged:function(){updateSr(studentsTable);},
       });
       coreTable=new Tabulator("#core-table",{
         height:"260px",layout:"fitColumns",columns:baseCols,
-        dataChanged:function(){updateSr(coreTable);}
+        dataChanged:function(){updateSr(coreTable);},
       });
     }
     initTables();
 
-    // Controls
     function addRow(table){ table.addRow({}); updateSr(table); }
     function deleteRow(table){ table.getSelectedRows().forEach(r=>r.delete()); updateSr(table); }
 
-    // Parse button
-    document.getElementById("parseBtn").addEventListener("click",()=>{
-      const students=parseText(document.getElementById("studentBox").value);
-      const core=parseText(document.getElementById("coreBox").value,"CORE");
-      studentsTable.replaceData(students);
-      coreTable.replaceData(core);
-    });
+    async function handleParseData() {
+        const statusDiv = document.getElementById("status");
+        const parseBtn = document.getElementById("parseBtn");
+        
+        parseBtn.disabled = true;
+        statusDiv.style.display = "block";
+        statusDiv.textContent = "Processing student data...";
 
-    // Generate PDF
+        await new Promise(resolve => setTimeout(resolve, 50));
+
+        const studentsData = document.getElementById("studentBox").value;
+        const students = parseText(studentsData, "STUDENT");
+
+        const sortedStudents = students.sort((a, b) => {
+            const yearOrder = { 'FE': 1, 'SE': 2, 'TE': 3, 'BE': 4, 'CORE': 5, 'STUDENT': 6 };
+            if (yearOrder[a.year] !== yearOrder[b.year]) {
+                return yearOrder[a.year] - yearOrder[b.year];
+            }
+            if (a.division.localeCompare(b.division) !== 0) {
+                return a.division.localeCompare(b.division);
+            }
+            return parseInt(a.roll) - parseInt(b.roll);
+        });
+        
+        sortedStudents.forEach((row, index) => row.sr = index + 1);
+        studentsTable.replaceData(sortedStudents);
+
+        statusDiv.textContent = "Processing core member data...";
+        await new Promise(resolve => setTimeout(resolve, 50));
+
+        const coreData = document.getElementById("coreBox").value;
+        const core = parseText(coreData, "CORE");
+
+        const sortedCore = core.sort((a, b) => {
+            const yearOrder = { 'FE': 1, 'SE': 2, 'TE': 3, 'BE': 4, 'CORE': 5, 'STUDENT': 6 };
+            if (yearOrder[a.year] !== yearOrder[b.year]) {
+                return yearOrder[a.year] - yearOrder[b.year];
+            }
+            if (a.division.localeCompare(b.division) !== 0) {
+                return a.division.localeCompare(b.division);
+            }
+            return parseInt(a.roll) - parseInt(b.roll);
+        });
+
+        sortedCore.forEach((row, index) => row.sr = index + 1);
+        coreTable.replaceData(sortedCore);
+
+        statusDiv.textContent = `Done! Loaded ${students.length} students and ${core.length} core members.`;
+        parseBtn.disabled = false;
+    }
+
+    document.getElementById("parseBtn").addEventListener("click", handleParseData);
+
     document.getElementById("genPdf").addEventListener("click", async () => {
       const { jsPDF } = window.jspdf;
       const doc = new jsPDF("p", "pt", "a4");
@@ -144,7 +355,6 @@
       const pageH = doc.internal.pageSize.getHeight();
       let y = 40, margin = 40;
 
-      // Banner ko async load kare
       const bannerFile = document.getElementById("bannerFile").files[0];
       if (bannerFile) {
         try {
@@ -154,7 +364,8 @@
             reader.onerror = reject;
             reader.readAsDataURL(bannerFile);
           });
-          doc.addImage(bannerDataUrl, "PNG", margin, y, pageW - margin * 2, 60);
+          const fileType = bannerFile.type.split('/')[1].toUpperCase();
+          doc.addImage(bannerDataUrl, fileType, margin, y, pageW - margin * 2, 60);
           y += 70;
         } catch (error) {
           console.error("Error loading banner image:", error);
@@ -163,13 +374,11 @@
         }
       }
 
-      // Header
-      const header = "The following students are going for PR and Sponsorship for Zephyr '25 " + document.getElementById("headerContinuation").value;
+      const header = document.getElementById("headerContinuation").value;
       doc.setFontSize(12);
-      doc.text(header, margin, y);
-      y += 20;
+      doc.text(header, margin, y, { maxWidth: pageW - margin * 2 });
+      y += doc.getFontSize() * (header.split('\n').length + 1);
 
-      // Date
       const d = document.getElementById("datePicker").value;
       if (d) {
         const dt = new Date(d);
@@ -178,7 +387,6 @@
         y += 20;
       }
 
-      // Students
       const students = studentsTable.getData();
       if (students.length) {
         doc.autoTable({
@@ -190,25 +398,25 @@
         y = doc.lastAutoTable.finalY + 20;
       }
 
-      // Core Members
       const core = coreTable.getData();
       if (core.length) {
         doc.text("CORE MEMBERS", margin, y);
         y += 10;
         doc.autoTable({
           startY: y,
-          head: [["Sr", "Name", "Roll", "Division", "Year"]],
-          body: core.map(r => [r.sr, r.name, r.roll, r.division, r.year]),
-          styles: { lineWidth: 0.5, lineColor: [0, 0, 0] }
+          head: [["Sr","Name","Roll","Division","Year"]],
+          body: core.map(r=>[r.sr,r.name,r.roll,r.division,r.year]),
+          styles:{lineWidth:0.5,lineColor:[0,0,0]}
         });
-        y = doc.lastAutoTable.finalY + 20;
+        y=doc.lastAutoTable.finalY+20;
       }
 
-      // Totals + Signature (page-break fix)
       const allStudentsAndCore = [...students, ...core];
-      const seCount = allStudentsAndCore.filter(r => /SE/i.test(r.year || "")).length;
-      const teCount = allStudentsAndCore.filter(r => /TE/i.test(r.year || "")).length;
-      const totalCount = seCount + teCount;
+      const yearOrder = { 'FE': 1, 'SE': 2, 'TE': 3, 'BE': 4, 'CORE': 5, 'STUDENT': 6 };
+
+      const uniqueYears = [...new Set(allStudentsAndCore.map(item => item.year))].sort((a,b) => yearOrder[a] - yearOrder[b]);
+      const totalCounts = uniqueYears.map(year => allStudentsAndCore.filter(item => item.year === year).length);
+      const total = totalCounts.reduce((sum, count) => sum + count, 0);
 
       let spaceLeft = pageH - y - 100;
       if (spaceLeft < 120) {
@@ -220,15 +428,29 @@
       y += 10;
       doc.autoTable({
         startY: y,
-        head: [["SE Students", "TE Students", "Total"]],
-        body: [[seCount, teCount, totalCount]],
+        head: [uniqueYears.concat("Total")],
+        body: [totalCounts.concat(total)],
         styles: { lineWidth: 0.5, lineColor: [0, 0, 0] }
       });
       y = doc.lastAutoTable.finalY + 40;
 
-      // Signature bottom of page
-      doc.text("Vivek Gupta", margin, pageH - 60);
-      doc.text("Chairperson – TCET ACM", margin, pageH - 45);
+      const signatureName = document.getElementById("signatureName").value;
+      const signatureTitle = document.getElementById("signatureTitle").value;
+      const signatureOrg = document.getElementById("signatureOrg").value;
+
+      const signatureBlockY = pageH - 70;
+
+      doc.text(signatureName, margin, signatureBlockY + 10);
+      doc.text(signatureTitle, margin, signatureBlockY + 25);
+      doc.text(signatureOrg, margin, signatureBlockY + 40);
+      
+      const signatureNameWidth = doc.getTextWidth(signatureName);
+      const signatureTitleWidth = doc.getTextWidth(signatureTitle);
+      const signatureOrgWidth = doc.getTextWidth(signatureOrg);
+      const maxSignatureWidth = Math.max(signatureNameWidth, signatureTitleWidth, signatureOrgWidth);
+
+      doc.setLineWidth(1);
+      doc.line(margin, signatureBlockY, margin + maxSignatureWidth, signatureBlockY);
 
       doc.save("permission_zephyr25.pdf");
     });
