@@ -5,11 +5,9 @@
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Permission Letter Generator — Zephyr '25</title>
 
-  <!-- Tabulator -->
   <link href="https://unpkg.com/tabulator-tables@5.6.0/dist/css/tabulator.min.css" rel="stylesheet">
   <script src="https://unpkg.com/tabulator-tables@5.6.0/dist/js/tabulator.min.js"></script>
 
-  <!-- jsPDF -->
   <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/jspdf-autotable@3.5.25/dist/jspdf.plugin.autotable.js"></script>
 
@@ -28,7 +26,6 @@
   <h1>Permission Letter Generator — Zephyr '25</h1>
 
   <div class="grid">
-    <!-- LEFT -->
     <div class="card">
       <label>1) Banner</label>
       <input id="bannerFile" type="file" accept="image/*" />
@@ -50,7 +47,6 @@
       <button id="genPdf" style="background:#059669">Generate PDF</button>
     </div>
 
-    <!-- RIGHT -->
     <div class="card">
       <strong>Preview (Students)</strong>
       <div id="students-table"></div>
@@ -69,20 +65,33 @@
   </div>
 
   <script>
-    let studentsTable, coreTable, bannerDataUrl=null;
+    let studentsTable, coreTable;
 
     // Parse text to rows
     function parseText(text, yearLabel=""){
-      const lines=text.split(/\r?\n/).map(l=>l.trim()).filter(Boolean);
-      let rows=[]; let currentYear=yearLabel;
-      for(const line of lines){
-        if(/^(TE|SE|BE|FE)/i.test(line)){ currentYear=line; continue; }
-        const parts=line.split(/\s+/);
-        if(parts.length>=3){
-          const name=parts.slice(0,parts.length-2).join(" ");
-          const roll=parts[parts.length-2];
-          const div=parts[parts.length-1];
-          rows.push({sr:rows.length+1,name,roll,division:div,year:currentYear});
+      const lines = text.split(/\r?\n/).map(l => l.trim()).filter(Boolean);
+      let rows = [];
+      let currentYear = yearLabel;
+      for (const line of lines) {
+        if (/^(TE|SE|BE|FE)/i.test(line)) {
+          currentYear = line;
+          continue;
+        }
+        const parts = line.split(/\s+/);
+        // Find the last numeric part, which is the roll number.
+        let rollIndex = -1;
+        for (let i = parts.length - 1; i >= 0; i--) {
+          if (!isNaN(parts[i]) && parts[i].trim() !== '') {
+            rollIndex = i;
+            break;
+          }
+        }
+        // If a roll number is found, assume the part after it is the division and the parts before it are the name.
+        if (rollIndex !== -1 && rollIndex < parts.length - 1) {
+          const name = parts.slice(0, rollIndex).join(" ");
+          const roll = parts[rollIndex];
+          const div = parts.slice(rollIndex + 1).join(" ");
+          rows.push({ sr: rows.length + 1, name, roll, division: div, year: currentYear });
         }
       }
       return rows;
@@ -127,78 +136,99 @@
       coreTable.replaceData(core);
     });
 
-    // Banner upload
-    document.getElementById("bannerFile").addEventListener("change",ev=>{
-      const f=ev.target.files[0]; if(!f) return;
-      const fr=new FileReader(); fr.onload=()=>bannerDataUrl=fr.result; fr.readAsDataURL(f);
-    });
-
     // Generate PDF
-    document.getElementById("genPdf").addEventListener("click",()=>{
-      const {jsPDF}=window.jspdf;
-      const doc=new jsPDF("p","pt","a4");
-      const pageW=doc.internal.pageSize.getWidth();
-      const pageH=doc.internal.pageSize.getHeight();
-      let y=40, margin=40;
+    document.getElementById("genPdf").addEventListener("click", async () => {
+      const { jsPDF } = window.jspdf;
+      const doc = new jsPDF("p", "pt", "a4");
+      const pageW = doc.internal.pageSize.getWidth();
+      const pageH = doc.internal.pageSize.getHeight();
+      let y = 40, margin = 40;
 
-      // Banner
-      if(bannerDataUrl){ doc.addImage(bannerDataUrl,"PNG",margin,y,pageW-margin*2,60); y+=70; }
+      // Banner ko async load kare
+      const bannerFile = document.getElementById("bannerFile").files[0];
+      if (bannerFile) {
+        try {
+          const bannerDataUrl = await new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.onload = () => resolve(reader.result);
+            reader.onerror = reject;
+            reader.readAsDataURL(bannerFile);
+          });
+          doc.addImage(bannerDataUrl, "PNG", margin, y, pageW - margin * 2, 60);
+          y += 70;
+        } catch (error) {
+          console.error("Error loading banner image:", error);
+          alert("Error loading banner image. Please try again.");
+          return;
+        }
+      }
 
       // Header
-      const header="The following students are going for PR and Sponsorship for Zephyr '25 "+document.getElementById("headerContinuation").value;
-      doc.setFontSize(12); doc.text(header,margin,y); y+=20;
+      const header = "The following students are going for PR and Sponsorship for Zephyr '25 " + document.getElementById("headerContinuation").value;
+      doc.setFontSize(12);
+      doc.text(header, margin, y);
+      y += 20;
 
       // Date
-      const d=document.getElementById("datePicker").value;
-      if(d){ const dt=new Date(d); const str=`Date: ${dt.getDate()}/${dt.getMonth()+1}/${dt.getFullYear()}`; doc.text(str,margin,y); y+=20; }
+      const d = document.getElementById("datePicker").value;
+      if (d) {
+        const dt = new Date(d);
+        const str = `Date: ${dt.getDate()}/${dt.getMonth() + 1}/${dt.getFullYear()}`;
+        doc.text(str, margin, y);
+        y += 20;
+      }
 
       // Students
-      const students=studentsTable.getData();
-      if(students.length){
+      const students = studentsTable.getData();
+      if (students.length) {
         doc.autoTable({
-          startY:y,
-          head:[["Sr","Name","Roll","Division","Year"]],
-          body:students.map(r=>[r.sr,r.name,r.roll,r.division,r.year]),
-          styles:{lineWidth:0.5,lineColor:[0,0,0]}
+          startY: y,
+          head: [["Sr", "Name", "Roll", "Division", "Year"]],
+          body: students.map(r => [r.sr, r.name, r.roll, r.division, r.year]),
+          styles: { lineWidth: 0.5, lineColor: [0, 0, 0] }
         });
-        y=doc.lastAutoTable.finalY+20;
+        y = doc.lastAutoTable.finalY + 20;
       }
 
       // Core Members
-      const core=coreTable.getData();
-      if(core.length){
-        doc.text("CORE MEMBERS",margin,y); y+=10;
+      const core = coreTable.getData();
+      if (core.length) {
+        doc.text("CORE MEMBERS", margin, y);
+        y += 10;
         doc.autoTable({
-          startY:y,
-          head:[["Sr","Name","Roll","Division","Year"]],
-          body:core.map(r=>[r.sr,r.name,r.roll,r.division,r.year]),
-          styles:{lineWidth:0.5,lineColor:[0,0,0]}
+          startY: y,
+          head: [["Sr", "Name", "Roll", "Division", "Year"]],
+          body: core.map(r => [r.sr, r.name, r.roll, r.division, r.year]),
+          styles: { lineWidth: 0.5, lineColor: [0, 0, 0] }
         });
-        y=doc.lastAutoTable.finalY+20;
+        y = doc.lastAutoTable.finalY + 20;
       }
 
       // Totals + Signature (page-break fix)
-      const seCount=[...students,...core].filter(r=>/SE/i.test(r.year||"")).length;
-      const teCount=[...students,...core].filter(r=>/TE/i.test(r.year||"")).length;
+      const allStudentsAndCore = [...students, ...core];
+      const seCount = allStudentsAndCore.filter(r => /SE/i.test(r.year || "")).length;
+      const teCount = allStudentsAndCore.filter(r => /TE/i.test(r.year || "")).length;
+      const totalCount = seCount + teCount;
 
       let spaceLeft = pageH - y - 100;
-      if(spaceLeft < 120){
+      if (spaceLeft < 120) {
         doc.addPage();
         y = 40;
       }
 
-      doc.text("TOTAL NUMBER OF STUDENTS",margin,y); y+=10;
+      doc.text("TOTAL NUMBER OF STUDENTS", margin, y);
+      y += 10;
       doc.autoTable({
-        startY:y,
-        head:[["SE Students","TE Students","Total"]],
-        body:[[seCount,teCount,seCount+teCount]],
-        styles:{lineWidth:0.5,lineColor:[0,0,0]}
+        startY: y,
+        head: [["SE Students", "TE Students", "Total"]],
+        body: [[seCount, teCount, totalCount]],
+        styles: { lineWidth: 0.5, lineColor: [0, 0, 0] }
       });
-      y=doc.lastAutoTable.finalY+40;
+      y = doc.lastAutoTable.finalY + 40;
 
       // Signature bottom of page
-      doc.text("Vivek Gupta",margin,pageH-60);
-      doc.text("Chairperson – TCET ACM",margin,pageH-45);
+      doc.text("Vivek Gupta", margin, pageH - 60);
+      doc.text("Chairperson – TCET ACM", margin, pageH - 45);
 
       doc.save("permission_zephyr25.pdf");
     });
