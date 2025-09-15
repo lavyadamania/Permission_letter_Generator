@@ -1,4 +1,4 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="utf-8" />
@@ -17,13 +17,13 @@
             max-width: 1200px;
             margin: 24px auto;
             padding: 20px;
-            background-color: #f0f4f8; /* Softer background color */
+            background-color: #f0f4f8;
             color: #333;
         }
 
         h1 {
             font-size: 2.2rem;
-            color: #1e3a8a; /* Dark blue heading */
+            color: #1e3a8a;
             margin-bottom: 20px;
             text-align: center;
             font-weight: 700;
@@ -32,29 +32,34 @@
         .grid {
             display: grid;
             grid-template-columns: 1fr 450px;
-            gap: 24px; /* Increased gap */
+            gap: 24px;
             margin-top: 24px;
+        }
+        @media (max-width: 900px) {
+            .grid {
+                grid-template-columns: 1fr;
+            }
         }
 
         .card {
             background: #ffffff;
-            border: 1px solid #d1d8e0; /* Softer border */
-            padding: 24px; /* Increased padding */
-            border-radius: 16px; /* Smoother corners */
-            box-shadow: 0 8px 24px rgba(17, 24, 39, 0.08); /* More prominent shadow */
+            border: 1px solid #d1d8e0;
+            padding: 24px;
+            border-radius: 16px;
+            box-shadow: 0 8px 24px rgba(17, 24, 39, 0.08);
             transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
         }
 
         .card:hover {
-            transform: translateY(-5px); /* Lift effect on hover */
+            transform: translateY(-5px);
             box-shadow: 0 12px 30px rgba(17, 24, 39, 0.12);
         }
 
         label {
             display: block;
             font-weight: 700;
-            margin: 16px 0 8px; /* Increased margins */
-            color: #4a5568; /* Darker label text */
+            margin: 16px 0 8px;
+            color: #4a5568;
             font-size: 1.1rem;
         }
 
@@ -64,19 +69,19 @@
 
         textarea, input[type="text"], input[type="date"], input[type="file"] {
             width: 100%;
-            padding: 12px; /* Increased padding */
+            padding: 12px;
             border-radius: 8px;
             border: 1px solid #c0d1e5;
             font-family: inherit;
             font-size: 1rem;
             box-sizing: border-box;
-            background-color: #f7fafc; /* Light input background */
+            background-color: #f7fafc;
             transition: border-color 0.3s, box-shadow 0.3s;
         }
 
         textarea:focus, input:focus {
             outline: none;
-            border-color: #3b82f6; /* Focus color */
+            border-color: #3b82f6;
             box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
         }
         
@@ -98,7 +103,7 @@
         }
 
         #parseBtn {
-            background-color: #4f87f6; /* Blue shade */
+            background-color: #4f87f6;
             color: #fff;
         }
 
@@ -108,14 +113,21 @@
         }
 
         #genPdf {
-            background-color: #10b981; /* Green shade */
+            background-color: #10b981;
         }
 
         #genPdf:hover {
             background-color: #0d9d6e;
             transform: translateY(-2px);
         }
-
+        #addSlotBoxBtn {
+            background-color: #3B82F6;
+            color: #fff;
+        }
+        #addSlotBoxBtn:hover {
+            background-color: #2563EB;
+        }
+        
         button:disabled {
             background-color: #b0c0d1;
             cursor: not-allowed;
@@ -174,286 +186,380 @@
     </style>
 </head>
 <body>
-  <h1>Permission Letter Generator — Zephyr '25</h1>
+    <h1>Permission Letter Generator — Zephyr '25</h1>
 
-  <div class="grid">
-    <div class="card">
-      <label>1) Banner</label>
-      <input id="bannerFile" type="file" accept="image/*" />
+    <div class="grid">
+        <div class="card">
+            <label>1) Banner</label>
+            <input id="bannerFile" type="file" accept="image/*" />
 
-      <label>2) Header continuation</label>
-      <textarea id="headerContinuation">The following students are going for PR and Sponsorship for Zephyr '25</textarea>
+            <label>2) Header continuation</label>
+            <textarea id="headerContinuation">The following students are going for PR and Sponsorship for Zephyr '25</textarea>
 
-      <label>3) Date</label>
-      <input id="datePicker" type="date" />
+            <label>3) Date</label>
+            <input id="datePicker" type="date" />
 
-      <label>4) Paste Student Data</label>
-      <textarea id="studentBox"></textarea>
+            <label>4) Paste Student Data (Main List)</label>
+            <textarea id="studentBox"></textarea>
 
-      <label>5) Paste Core Members Data</label>
-      <textarea id="coreBox"></textarea>
-      
-      <label>6) Signature Details</label>
-      <input id="signatureName" type="text" placeholder="Name (e.g., Lavya Damania)" value="Lavya Damania"/>
-      <input id="signatureTitle" type="text" placeholder="Title (e.g., Chairperson)" value="Chairperson"/>
-      <input id="signatureOrg" type="text" placeholder="Organization (e.g., Tcet Acm)" value="Tcet Acm"/>
-      
+            <div id="dynamic-slot-textboxes"></div>
+            <button id="addSlotBoxBtn">+ Add Another Slot</button>
 
-      <button id="parseBtn">Parse Data</button>
-      <div id="status"></div>
-      <button id="genPdf">Generate PDF</button>
+            <label>5) Paste Core Members Data</label>
+            <textarea id="coreBox"></textarea>
+            
+            <label>6) Signature Details</label>
+            <input id="signatureName" type="text" placeholder="Name (e.g., Lavya Damania)" value="Lavya Damania"/>
+            <input id="signatureTitle" type="text" placeholder="Title (e.g., Chairperson)" value="Chairperson"/>
+            <input id="signatureOrg" type="text" placeholder="Organization (e.g., Tcet Acm)" value="Tcet Acm"/>
+            
+
+            <button id="parseBtn">Parse Data</button>
+            <div id="status"></div>
+            <button id="genPdf">Generate PDF</button>
+        </div>
+
+        <div class="card">
+            <strong>Preview (Main List)</strong>
+            <div id="students-table"></div>
+            <div class="controls">
+                <button onclick="addRow(studentsTable)">+ Add Row</button>
+                <button onclick="deleteRow(studentsTable)">- Delete Row</button>
+            </div>
+            <hr />
+            <div id="dynamic-slots-container"></div>
+            <hr />
+            <strong>Preview (Core Members)</strong>
+            <div id="core-table"></div>
+            <div class="controls">
+                <button onclick="addRow(coreTable)">+ Add Row</button>
+                <button onclick="deleteRow(coreTable)">- Delete Row</button>
+            </div>
+        </div>
     </div>
 
-    <div class="card">
-      <strong>Preview (Students)</strong>
-      <div id="students-table"></div>
-      <div class="controls">
-        <button onclick="addRow(studentsTable)">+ Add Row</button>
-        <button onclick="deleteRow(studentsTable)">- Delete Row</button>
-      </div>
-      <hr />
-      <strong>Preview (Core Members)</strong>
-      <div id="core-table"></div>
-      <div class="controls">
-        <button onclick="addRow(coreTable)">+ Add Row</button>
-        <button onclick="deleteRow(coreTable)">- Delete Row</button>
-      </div>
-    </div>
-  </div>
+    <script>
+        let studentsTable, coreTable;
+        let dynamicTables = [];
+        let slotCount = 1;
 
-  <script>
-    let studentsTable, coreTable;
+        function parseText(text) {
+            const lines = text.split(/\r?\n/).map(l => l.trim()).filter(Boolean);
+            let rows = [];
+            let currentYear = "";
+            const yearKeywords = ["SE", "TE", "BE", "FE", "CORE"];
 
-    function parseText(text, yearLabel = "") {
-      const lines = text.split(/\r?\n/).map(l => l.trim()).filter(Boolean);
-      let rows = [];
-      let currentYear = yearLabel;
-      const yearKeywords = ["SE", "TE", "BE", "FE", "CORE"];
+            for (const line of lines) {
+                const upperLine = line.toUpperCase();
+                if (yearKeywords.includes(upperLine)) {
+                    currentYear = upperLine;
+                    continue;
+                }
 
-      for (const line of lines) {
-        const upperLine = line.toUpperCase();
-        if (yearKeywords.includes(upperLine)) {
-          currentYear = upperLine;
-          continue;
+                const parts = line.split(/\s+/).filter(Boolean);
+                let nameParts = [];
+                let roll = "";
+                let division = "";
+                let parsedYear = "";
+
+                for (const part of parts) {
+                    const upperPart = part.toUpperCase();
+                    
+                    if (yearKeywords.includes(upperPart)) {
+                        parsedYear = upperPart;
+                    } else if (part.length === 1 && /[A-Z]/.test(upperPart)) {
+                        division = upperPart;
+                    } else if (!isNaN(part) && !isNaN(parseFloat(part)) && isFinite(part)) {
+                        roll = part;
+                    } else {
+                        nameParts.push(part);
+                    }
+                }
+
+                const name = nameParts.join(" ");
+                const finalYear = parsedYear || currentYear;
+
+                if (name.trim() && roll && division) {
+                    rows.push({ sr: 0, name: name.trim(), roll, division, year: finalYear });
+                }
+            }
+            return rows;
         }
 
-        const parts = line.split(/\s+/).filter(Boolean);
-        let nameParts = [];
-        let roll = "";
-        let division = "";
-        let parsedYear = "";
-
-        for (const part of parts) {
-          const upperPart = part.toUpperCase();
-          
-          if (yearKeywords.includes(upperPart)) {
-            parsedYear = upperPart;
-          } else if (part.length === 1 && /[A-Z]/.test(upperPart)) {
-            division = upperPart;
-          } else if (!isNaN(part) && !isNaN(parseFloat(part)) && isFinite(part)) {
-            roll = part;
-          } else {
-            nameParts.push(part);
-          }
+        function updateSr(table){
+            let data=table.getData();
+            data.forEach((row,i)=>row.sr=i+1);
+            table.replaceData(data);
         }
 
-        const name = nameParts.join(" ");
-        const finalYear = parsedYear || currentYear;
-
-        if (name.trim() && roll && division) {
-          rows.push({ sr: 0, name: name.trim(), roll, division, year: finalYear });
+        function initTables(){
+            const baseCols=[
+                {title:"Sr",field:"sr",hozAlign:"center",width:50},
+                {title:"Name",field:"name",editor:"input"},
+                {title:"Roll",field:"roll",editor:"input"},
+                {title:"Division",field:"division",editor:"input"},
+                {title:"Year",field:"year",editor:"input"},
+            ];
+            studentsTable=new Tabulator("#students-table",{
+                height:"260px",layout:"fitColumns",columns:baseCols,
+                dataChanged:function(){updateSr(studentsTable);},
+            });
+            coreTable=new Tabulator("#core-table",{
+                height:"260px",layout:"fitColumns",columns:baseCols,
+                dataChanged:function(){updateSr(coreTable);},
+            });
         }
-      }
-      return rows;
-    }
+        initTables();
 
-    function updateSr(table){
-      let data=table.getData();
-      data.forEach((row,i)=>row.sr=i+1);
-      table.replaceData(data);
-    }
+        function addRow(table){ table.addRow({}); updateSr(table); }
+        function deleteRow(table){ table.getSelectedRows().forEach(r=>r.delete()); updateSr(table); }
 
-    function initTables(){
-      const baseCols=[
-        {title:"Sr",field:"sr",hozAlign:"center",width:50},
-        {title:"Name",field:"name",editor:"input"},
-        {title:"Roll",field:"roll",editor:"input"},
-        {title:"Division",field:"division",editor:"input"},
-        {title:"Year",field:"year",editor:"input"},
-      ];
-      studentsTable=new Tabulator("#students-table",{
-        height:"260px",layout:"fitColumns",columns:baseCols,
-        dataChanged:function(){updateSr(studentsTable);},
-      });
-      coreTable=new Tabulator("#core-table",{
-        height:"260px",layout:"fitColumns",columns:baseCols,
-        dataChanged:function(){updateSr(coreTable);},
-      });
-    }
-    initTables();
+        // Dynamic Slot Creation
+        document.getElementById("addSlotBoxBtn").addEventListener("click", () => {
+            slotCount++;
+            // Add new textbox
+            const textboxContainer = document.getElementById("dynamic-slot-textboxes");
+            const newTextboxLabel = document.createElement("label");
+            newTextboxLabel.textContent = `4) Paste Student Data (Slot ${slotCount})`;
+            const newTextbox = document.createElement("textarea");
+            newTextbox.id = `studentBox${slotCount}`;
+            textboxContainer.appendChild(newTextboxLabel);
+            textboxContainer.appendChild(newTextbox);
+            
+            // Add new table
+            const tableContainer = document.getElementById("dynamic-slots-container");
+            const newTableDiv = document.createElement("div");
+            newTableDiv.innerHTML = `
+                <hr />
+                <strong>Preview (Slot ${slotCount})</strong>
+                <div id="slot-table-${slotCount}"></div>
+                <div class="controls">
+                    <button onclick="addRow(dynamicTables[${slotCount-2}])">+ Add Row</button>
+                    <button onclick="deleteRow(dynamicTables[${slotCount-2}])">- Delete Row</button>
+                </div>
+            `;
+            tableContainer.appendChild(newTableDiv);
 
-    function addRow(table){ table.addRow({}); updateSr(table); }
-    function deleteRow(table){ table.getSelectedRows().forEach(r=>r.delete()); updateSr(table); }
+            // Initialize new table
+            const newTable = new Tabulator(`#slot-table-${slotCount}`, {
+                height: "260px",
+                layout: "fitColumns",
+                columns: [
+                    {title:"Sr",field:"sr",hozAlign:"center",width:50},
+                    {title:"Name",field:"name",editor:"input"},
+                    {title:"Roll",field:"roll",editor:"input"},
+                    {title:"Division",field:"division",editor:"input"},
+                    {title:"Year",field:"year",editor:"input"},
+                ],
+                dataChanged: function() { updateSr(newTable); },
+            });
+            dynamicTables.push(newTable);
+        });
 
-    async function handleParseData() {
-        const statusDiv = document.getElementById("status");
-        const parseBtn = document.getElementById("parseBtn");
-        
-        parseBtn.disabled = true;
-        statusDiv.style.display = "block";
-        statusDiv.textContent = "Processing student data...";
+        async function handleParseData() {
+            const statusDiv = document.getElementById("status");
+            const parseBtn = document.getElementById("parseBtn");
+            
+            parseBtn.disabled = true;
+            statusDiv.style.display = "block";
+            statusDiv.textContent = "Processing data...";
 
-        await new Promise(resolve => setTimeout(resolve, 50));
+            await new Promise(resolve => setTimeout(resolve, 50));
 
-        const studentsData = document.getElementById("studentBox").value;
-        const students = parseText(studentsData, "STUDENT");
+            // Clear dynamic tables first
+            dynamicTables.forEach(table => table.clearData());
 
-        const sortedStudents = students.sort((a, b) => {
+            // Parse and update main student table
+            const studentsData = document.getElementById("studentBox").value;
+            const students = parseText(studentsData);
+            const sortedStudents = students.sort((a, b) => {
+                const yearOrder = { 'FE': 1, 'SE': 2, 'TE': 3, 'BE': 4, 'CORE': 5 };
+                if (yearOrder[a.year] !== yearOrder[b.year]) {
+                    return yearOrder[a.year] - yearOrder[b.year];
+                }
+                if (a.division.localeCompare(b.division) !== 0) {
+                    return a.division.localeCompare(b.division);
+                }
+                return parseInt(a.roll) - parseInt(b.roll);
+            });
+            sortedStudents.forEach((row, index) => row.sr = index + 1);
+            studentsTable.replaceData(sortedStudents);
+
+            // Parse and update dynamic tables only if text areas have data
+            for (let i = 2; i <= slotCount; i++) {
+                const slotTextBox = document.getElementById(`studentBox${i}`);
+                if (slotTextBox && slotTextBox.value.trim() !== '') {
+                    const slotData = parseText(slotTextBox.value);
+                    const sortedSlot = slotData.sort((a, b) => {
+                        const yearOrder = { 'FE': 1, 'SE': 2, 'TE': 3, 'BE': 4, 'CORE': 5 };
+                        if (yearOrder[a.year] !== yearOrder[b.year]) {
+                            return yearOrder[a.year] - yearOrder[b.year];
+                        }
+                        if (a.division.localeCompare(b.division) !== 0) {
+                            return a.division.localeCompare(b.division);
+                        }
+                        return parseInt(a.roll) - parseInt(b.roll);
+                    });
+                    sortedSlot.forEach((row, index) => row.sr = index + 1);
+                    // Find the correct dynamic table
+                    const tableIndex = i - 2;
+                    if (dynamicTables[tableIndex]) {
+                        dynamicTables[tableIndex].replaceData(sortedSlot);
+                    }
+                }
+            }
+
+            // Parse and update core table
+            const coreData = document.getElementById("coreBox").value;
+            const core = parseText(coreData);
+            const sortedCore = core.sort((a, b) => {
+                const yearOrder = { 'FE': 1, 'SE': 2, 'TE': 3, 'BE': 4, 'CORE': 5 };
+                if (yearOrder[a.year] !== yearOrder[b.year]) {
+                    return yearOrder[a.year] - yearOrder[b.year];
+                }
+                if (a.division.localeCompare(b.division) !== 0) {
+                    return a.division.localeCompare(b.division);
+                }
+                return parseInt(a.roll) - parseInt(b.roll);
+            });
+            sortedCore.forEach((row, index) => row.sr = index + 1);
+            coreTable.replaceData(sortedCore);
+
+            statusDiv.textContent = `Done! Loaded data from all available slots.`;
+            parseBtn.disabled = false;
+        }
+
+        document.getElementById("parseBtn").addEventListener("click", handleParseData);
+
+        document.getElementById("genPdf").addEventListener("click", async () => {
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF("p", "pt", "a4");
+            const pageW = doc.internal.pageSize.getWidth();
+            const pageH = doc.internal.pageSize.getHeight();
+            let y = 40, margin = 40;
+
+            const bannerFile = document.getElementById("bannerFile").files[0];
+            if (bannerFile) {
+                try {
+                    const bannerDataUrl = await new Promise((resolve, reject) => {
+                        const reader = new FileReader();
+                        reader.onload = () => resolve(reader.result);
+                        reader.onerror = reject;
+                        reader.readAsDataURL(bannerFile);
+                    });
+                    const fileType = bannerFile.type.split('/')[1].toUpperCase();
+                    doc.addImage(bannerDataUrl, fileType, margin, y, pageW - margin * 2, 60);
+                    y += 70;
+                } catch (error) {
+                    console.error("Error loading banner image:", error);
+                    alert("Error loading banner image. Please try again.");
+                    return;
+                }
+            }
+
+            const header = document.getElementById("headerContinuation").value;
+            doc.setFontSize(12);
+            doc.text(header, margin, y, { maxWidth: pageW - margin * 2 });
+            y += doc.getFontSize() * (header.split('\n').length + 1);
+
+            const d = document.getElementById("datePicker").value;
+            if (d) {
+                const dt = new Date(d);
+                const str = `Date: ${dt.getDate()}/${dt.getMonth() + 1}/${dt.getFullYear()}`;
+                doc.text(str, margin, y);
+                y += 20;
+            }
+            
+            const allStudents = [];
+            
+            const studentsData = studentsTable.getData();
+            if (studentsData.length) {
+                doc.autoTable({
+                    startY: y,
+                    head: [["Sr", "Name", "Roll", "Division", "Year"]],
+                    body: studentsData.map(r => [r.sr, r.name, r.roll, r.division, r.year]),
+                    styles: { lineWidth: 0.5, lineColor: [0, 0, 0] }
+                });
+                y = doc.lastAutoTable.finalY + 20;
+                allStudents.push(...studentsData);
+            }
+
+            // Generate tables for dynamic slots if they have data
+            for (let i = 0; i < dynamicTables.length; i++) {
+                const slotData = dynamicTables[i].getData();
+                if (slotData.length) {
+                    if (y + 100 > pageH) {
+                        doc.addPage();
+                        y = 40;
+                    }
+                    doc.text(`Slot ${i + 2} Members`, margin, y);
+                    y += 10;
+                    doc.autoTable({
+                        startY: y,
+                        head: [["Sr", "Name", "Roll", "Division", "Year"]],
+                        body: slotData.map(r => [r.sr, r.name, r.roll, r.division, r.year]),
+                        styles: { lineWidth: 0.5, lineColor: [0, 0, 0] }
+                    });
+                    y = doc.lastAutoTable.finalY + 20;
+                    allStudents.push(...slotData);
+                }
+            }
+            
+            const coreData = coreTable.getData();
+            if (coreData.length) {
+                doc.text("CORE MEMBERS", margin, y);
+                y += 10;
+                doc.autoTable({
+                    startY: y,
+                    head: [["Sr","Name","Roll","Division","Year"]],
+                    body: coreData.map(r=>[r.sr,r.name,r.roll,r.division,r.year]),
+                    styles:{lineWidth:0.5,lineColor:[0,0,0]}
+                });
+                y=doc.lastAutoTable.finalY+20;
+                allStudents.push(...coreData);
+            }
+
             const yearOrder = { 'FE': 1, 'SE': 2, 'TE': 3, 'BE': 4, 'CORE': 5, 'STUDENT': 6 };
-            if (yearOrder[a.year] !== yearOrder[b.year]) {
-                return yearOrder[a.year] - yearOrder[b.year];
+            const uniqueYears = [...new Set(allStudents.map(item => item.year))].sort((a,b) => yearOrder[a] - yearOrder[b]);
+            const totalCounts = uniqueYears.map(year => allStudents.filter(item => item.year === year).length);
+            const total = totalCounts.reduce((sum, count) => sum + count, 0);
+
+            let spaceLeft = pageH - y - 100;
+            if (spaceLeft < 120) {
+                doc.addPage();
+                y = 40;
             }
-            if (a.division.localeCompare(b.division) !== 0) {
-                return a.division.localeCompare(b.division);
-            }
-            return parseInt(a.roll) - parseInt(b.roll);
+
+            doc.text("TOTAL NUMBER OF STUDENTS", margin, y);
+            y += 10;
+            doc.autoTable({
+                startY: y,
+                head: [uniqueYears.concat("Total")],
+                body: [totalCounts.concat(total)],
+                styles: { lineWidth: 0.5, lineColor: [0, 0, 0] }
+            });
+            y = doc.lastAutoTable.finalY + 40;
+
+            const signatureName = document.getElementById("signatureName").value;
+            const signatureTitle = document.getElementById("signatureTitle").value;
+            const signatureOrg = document.getElementById("signatureOrg").value;
+
+            const signatureBlockY = pageH - 70;
+
+            doc.text(signatureName, margin, signatureBlockY + 10);
+            doc.text(signatureTitle, margin, signatureBlockY + 25);
+            doc.text(signatureOrg, margin, signatureBlockY + 40);
+            
+            const signatureNameWidth = doc.getTextWidth(signatureName);
+            const signatureTitleWidth = doc.getTextWidth(signatureTitle);
+            const signatureOrgWidth = doc.getTextWidth(signatureOrg);
+            const maxSignatureWidth = Math.max(signatureNameWidth, signatureTitleWidth, signatureOrgWidth);
+
+            doc.setLineWidth(1);
+            doc.line(margin, signatureBlockY, margin + maxSignatureWidth, signatureBlockY);
+
+            doc.save("permission_zephyr25.pdf");
         });
-        
-        sortedStudents.forEach((row, index) => row.sr = index + 1);
-        studentsTable.replaceData(sortedStudents);
-
-        statusDiv.textContent = "Processing core member data...";
-        await new Promise(resolve => setTimeout(resolve, 50));
-
-        const coreData = document.getElementById("coreBox").value;
-        const core = parseText(coreData, "CORE");
-
-        const sortedCore = core.sort((a, b) => {
-            const yearOrder = { 'FE': 1, 'SE': 2, 'TE': 3, 'BE': 4, 'CORE': 5, 'STUDENT': 6 };
-            if (yearOrder[a.year] !== yearOrder[b.year]) {
-                return yearOrder[a.year] - yearOrder[b.year];
-            }
-            if (a.division.localeCompare(b.division) !== 0) {
-                return a.division.localeCompare(b.division);
-            }
-            return parseInt(a.roll) - parseInt(b.roll);
-        });
-
-        sortedCore.forEach((row, index) => row.sr = index + 1);
-        coreTable.replaceData(sortedCore);
-
-        statusDiv.textContent = `Done! Loaded ${students.length} students and ${core.length} core members.`;
-        parseBtn.disabled = false;
-    }
-
-    document.getElementById("parseBtn").addEventListener("click", handleParseData);
-
-    document.getElementById("genPdf").addEventListener("click", async () => {
-      const { jsPDF } = window.jspdf;
-      const doc = new jsPDF("p", "pt", "a4");
-      const pageW = doc.internal.pageSize.getWidth();
-      const pageH = doc.internal.pageSize.getHeight();
-      let y = 40, margin = 40;
-
-      const bannerFile = document.getElementById("bannerFile").files[0];
-      if (bannerFile) {
-        try {
-          const bannerDataUrl = await new Promise((resolve, reject) => {
-            const reader = new FileReader();
-            reader.onload = () => resolve(reader.result);
-            reader.onerror = reject;
-            reader.readAsDataURL(bannerFile);
-          });
-          const fileType = bannerFile.type.split('/')[1].toUpperCase();
-          doc.addImage(bannerDataUrl, fileType, margin, y, pageW - margin * 2, 60);
-          y += 70;
-        } catch (error) {
-          console.error("Error loading banner image:", error);
-          alert("Error loading banner image. Please try again.");
-          return;
-        }
-      }
-
-      const header = document.getElementById("headerContinuation").value;
-      doc.setFontSize(12);
-      doc.text(header, margin, y, { maxWidth: pageW - margin * 2 });
-      y += doc.getFontSize() * (header.split('\n').length + 1);
-
-      const d = document.getElementById("datePicker").value;
-      if (d) {
-        const dt = new Date(d);
-        const str = `Date: ${dt.getDate()}/${dt.getMonth() + 1}/${dt.getFullYear()}`;
-        doc.text(str, margin, y);
-        y += 20;
-      }
-
-      const students = studentsTable.getData();
-      if (students.length) {
-        doc.autoTable({
-          startY: y,
-          head: [["Sr", "Name", "Roll", "Division", "Year"]],
-          body: students.map(r => [r.sr, r.name, r.roll, r.division, r.year]),
-          styles: { lineWidth: 0.5, lineColor: [0, 0, 0] }
-        });
-        y = doc.lastAutoTable.finalY + 20;
-      }
-
-      const core = coreTable.getData();
-      if (core.length) {
-        doc.text("CORE MEMBERS", margin, y);
-        y += 10;
-        doc.autoTable({
-          startY: y,
-          head: [["Sr","Name","Roll","Division","Year"]],
-          body: core.map(r=>[r.sr,r.name,r.roll,r.division,r.year]),
-          styles:{lineWidth:0.5,lineColor:[0,0,0]}
-        });
-        y=doc.lastAutoTable.finalY+20;
-      }
-
-      const allStudentsAndCore = [...students, ...core];
-      const yearOrder = { 'FE': 1, 'SE': 2, 'TE': 3, 'BE': 4, 'CORE': 5, 'STUDENT': 6 };
-
-      const uniqueYears = [...new Set(allStudentsAndCore.map(item => item.year))].sort((a,b) => yearOrder[a] - yearOrder[b]);
-      const totalCounts = uniqueYears.map(year => allStudentsAndCore.filter(item => item.year === year).length);
-      const total = totalCounts.reduce((sum, count) => sum + count, 0);
-
-      let spaceLeft = pageH - y - 100;
-      if (spaceLeft < 120) {
-        doc.addPage();
-        y = 40;
-      }
-
-      doc.text("TOTAL NUMBER OF STUDENTS", margin, y);
-      y += 10;
-      doc.autoTable({
-        startY: y,
-        head: [uniqueYears.concat("Total")],
-        body: [totalCounts.concat(total)],
-        styles: { lineWidth: 0.5, lineColor: [0, 0, 0] }
-      });
-      y = doc.lastAutoTable.finalY + 40;
-
-      const signatureName = document.getElementById("signatureName").value;
-      const signatureTitle = document.getElementById("signatureTitle").value;
-      const signatureOrg = document.getElementById("signatureOrg").value;
-
-      const signatureBlockY = pageH - 70;
-
-      doc.text(signatureName, margin, signatureBlockY + 10);
-      doc.text(signatureTitle, margin, signatureBlockY + 25);
-      doc.text(signatureOrg, margin, signatureBlockY + 40);
-      
-      const signatureNameWidth = doc.getTextWidth(signatureName);
-      const signatureTitleWidth = doc.getTextWidth(signatureTitle);
-      const signatureOrgWidth = doc.getTextWidth(signatureOrg);
-      const maxSignatureWidth = Math.max(signatureNameWidth, signatureTitleWidth, signatureOrgWidth);
-
-      doc.setLineWidth(1);
-      doc.line(margin, signatureBlockY, margin + maxSignatureWidth, signatureBlockY);
-
-      doc.save("permission_zephyr25.pdf");
-    });
-  </script>
+    </script>
 </body>
 </html>
