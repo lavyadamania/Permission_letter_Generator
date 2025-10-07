@@ -199,11 +199,23 @@
             <label>3) Date</label>
             <input id="datePicker" type="date" />
 
+            <label>Main List Title</label>
+            <input id="mainListTitle" type="text" placeholder="Title for main list" value="Main List" />
+            
+            <label>Main List Text Body</label>
+            <textarea id="mainListText" placeholder="Text body for main list"></textarea>
+
             <label>4) Paste Student Data (Main List)</label>
             <textarea id="studentBox"></textarea>
 
             <div id="dynamic-slot-textboxes"></div>
             <button id="addSlotBoxBtn">+ Add Another Slot</button>
+
+            <label>Core Members Title</label>
+            <input id="coreTitle" type="text" placeholder="Title for core members" value="Core Members" />
+            
+            <label>Core Members Text Body</label>
+            <textarea id="coreText" placeholder="Text body for core members"></textarea>
 
             <label>5) Paste Core Members Data</label>
             <textarea id="coreBox"></textarea>
@@ -212,7 +224,6 @@
             <input id="signatureName" type="text" placeholder="Name (e.g., Lavya Damania)" value="Lavya Damania"/>
             <input id="signatureTitle" type="text" placeholder="Title (e.g., Chairperson)" value="Chairperson"/>
             <input id="signatureOrg" type="text" placeholder="Organization (e.g., Tcet Acm)" value="Tcet Acm"/>
-            
 
             <button id="parseBtn">Parse Data</button>
             <div id="status"></div>
@@ -280,7 +291,7 @@
                 const finalYear = parsedYear || currentYear;
 
                 if (name.trim() && roll && division) {
-                    rows.push({ sr: 0, name: name.trim(), roll, division, year: finalYear });
+                    rows.push({ sr: 0, year: finalYear, roll, division, name: name.trim() });
                 }
             }
             return rows;
@@ -295,10 +306,10 @@
         function initTables(){
             const baseCols=[
                 {title:"Sr",field:"sr",hozAlign:"center",width:50},
-                {title:"Name",field:"name",editor:"input"},
+                {title:"Year",field:"year",editor:"input"},
                 {title:"Roll",field:"roll",editor:"input"},
                 {title:"Division",field:"division",editor:"input"},
-                {title:"Year",field:"year",editor:"input"},
+                {title:"Name",field:"name",editor:"input"},
             ];
             studentsTable=new Tabulator("#students-table",{
                 height:"260px",layout:"fitColumns",columns:baseCols,
@@ -317,16 +328,34 @@
         // Dynamic Slot Creation
         document.getElementById("addSlotBoxBtn").addEventListener("click", () => {
             slotCount++;
-            // Add new textbox
             const textboxContainer = document.getElementById("dynamic-slot-textboxes");
+            
+            const slotTitleLabel = document.createElement("label");
+            slotTitleLabel.textContent = `Slot ${slotCount} Title`;
+            const slotTitleInput = document.createElement("input");
+            slotTitleInput.type = "text";
+            slotTitleInput.id = `slotTitle${slotCount}`;
+            slotTitleInput.placeholder = `Title for slot ${slotCount}`;
+            slotTitleInput.value = `Slot ${slotCount}`;
+            
+            const slotTextLabel = document.createElement("label");
+            slotTextLabel.textContent = `Slot ${slotCount} Text Body`;
+            const slotTextArea = document.createElement("textarea");
+            slotTextArea.id = `slotText${slotCount}`;
+            slotTextArea.placeholder = `Text body for slot ${slotCount}`;
+            
             const newTextboxLabel = document.createElement("label");
             newTextboxLabel.textContent = `4) Paste Student Data (Slot ${slotCount})`;
             const newTextbox = document.createElement("textarea");
             newTextbox.id = `studentBox${slotCount}`;
+            
+            textboxContainer.appendChild(slotTitleLabel);
+            textboxContainer.appendChild(slotTitleInput);
+            textboxContainer.appendChild(slotTextLabel);
+            textboxContainer.appendChild(slotTextArea);
             textboxContainer.appendChild(newTextboxLabel);
             textboxContainer.appendChild(newTextbox);
             
-            // Add new table
             const tableContainer = document.getElementById("dynamic-slots-container");
             const newTableDiv = document.createElement("div");
             newTableDiv.innerHTML = `
@@ -340,16 +369,15 @@
             `;
             tableContainer.appendChild(newTableDiv);
 
-            // Initialize new table
             const newTable = new Tabulator(`#slot-table-${slotCount}`, {
                 height: "260px",
                 layout: "fitColumns",
                 columns: [
                     {title:"Sr",field:"sr",hozAlign:"center",width:50},
-                    {title:"Name",field:"name",editor:"input"},
+                    {title:"Year",field:"year",editor:"input"},
                     {title:"Roll",field:"roll",editor:"input"},
                     {title:"Division",field:"division",editor:"input"},
-                    {title:"Year",field:"year",editor:"input"},
+                    {title:"Name",field:"name",editor:"input"},
                 ],
                 dataChanged: function() { updateSr(newTable); },
             });
@@ -366,10 +394,8 @@
 
             await new Promise(resolve => setTimeout(resolve, 50));
 
-            // Clear dynamic tables first
             dynamicTables.forEach(table => table.clearData());
 
-            // Parse and update main student table
             const studentsData = document.getElementById("studentBox").value;
             const students = parseText(studentsData);
             const sortedStudents = students.sort((a, b) => {
@@ -385,7 +411,6 @@
             sortedStudents.forEach((row, index) => row.sr = index + 1);
             studentsTable.replaceData(sortedStudents);
 
-            // Parse and update dynamic tables only if text areas have data
             for (let i = 2; i <= slotCount; i++) {
                 const slotTextBox = document.getElementById(`studentBox${i}`);
                 if (slotTextBox && slotTextBox.value.trim() !== '') {
@@ -401,7 +426,6 @@
                         return parseInt(a.roll) - parseInt(b.roll);
                     });
                     sortedSlot.forEach((row, index) => row.sr = index + 1);
-                    // Find the correct dynamic table
                     const tableIndex = i - 2;
                     if (dynamicTables[tableIndex]) {
                         dynamicTables[tableIndex].replaceData(sortedSlot);
@@ -409,7 +433,6 @@
                 }
             }
 
-            // Parse and update core table
             const coreData = document.getElementById("coreBox").value;
             const core = parseText(coreData);
             const sortedCore = core.sort((a, b) => {
@@ -431,12 +454,33 @@
 
         document.getElementById("parseBtn").addEventListener("click", handleParseData);
 
+        // Helper functions for PDF writing with Helvetica (Calibri alternative)
+        function writeSectionHeader(doc, text, margin, y, pageW) {
+            doc.setFont("helvetica", "bold");
+            doc.setFontSize(14);
+            const lines = doc.splitTextToSize(text, pageW - margin * 2);
+            doc.text(lines, margin, y);
+            return y + lines.length * 20 + 8;
+        }
+
+        function writeBodyText(doc, text, margin, y, pageW) {
+            doc.setFont("helvetica", "normal");
+            doc.setFontSize(11);
+            const lines = doc.splitTextToSize(text, pageW - margin * 2);
+            doc.text(lines, margin, y);
+            return y + lines.length * 14 + 5;
+        }
+
         document.getElementById("genPdf").addEventListener("click", async () => {
             const { jsPDF } = window.jspdf;
             const doc = new jsPDF("p", "pt", "a4");
             const pageW = doc.internal.pageSize.getWidth();
             const pageH = doc.internal.pageSize.getHeight();
             let y = 40, margin = 40;
+
+            // Set default font to Helvetica (Calibri alternative)
+            doc.setFont("helvetica", "normal");
+            doc.setFontSize(11);
 
             const bannerFile = document.getElementById("bannerFile").files[0];
             if (bannerFile) {
@@ -458,33 +502,65 @@
             }
 
             const header = document.getElementById("headerContinuation").value;
-            doc.setFontSize(12);
-            doc.text(header, margin, y, { maxWidth: pageW - margin * 2 });
-            y += doc.getFontSize() * (header.split('\n').length + 1);
+            if (header) {
+                y = writeBodyText(doc, header, margin, y, pageW);
+            }
 
             const d = document.getElementById("datePicker").value;
             if (d) {
                 const dt = new Date(d);
                 const str = `Date: ${dt.getDate()}/${dt.getMonth() + 1}/${dt.getFullYear()}`;
+                doc.setFont("helvetica", "normal");
+                doc.setFontSize(11);
                 doc.text(str, margin, y);
-                y += 20;
+                y += 25;
             }
             
             const allStudents = [];
+            
+            const mainListTitle = document.getElementById("mainListTitle").value;
+            const mainListText = document.getElementById("mainListText").value;
+            
+            if (mainListTitle) {
+                y = writeSectionHeader(doc, mainListTitle, margin, y, pageW);
+            }
+            
+            if (mainListText) {
+                y = writeBodyText(doc, mainListText, margin, y, pageW);
+            }
             
             const studentsData = studentsTable.getData();
             if (studentsData.length) {
                 doc.autoTable({
                     startY: y,
-                    head: [["Sr", "Name", "Roll", "Division", "Year"]],
-                    body: studentsData.map(r => [r.sr, r.name, r.roll, r.division, r.year]),
-                    styles: { lineWidth: 0.5, lineColor: [0, 0, 0] }
+                    head: [["Sr", "Year", "Roll", "Division", "Name"]],
+                    body: studentsData.map(r => [r.sr, r.year, r.roll, r.division, r.name]),
+                    styles: { 
+                        font: "helvetica",
+                        fontStyle: "normal",
+                        lineWidth: 0.5, 
+                        lineColor: [0, 0, 0],
+                        fontSize: 11,
+                        cellPadding: 5,
+                        halign: 'left'
+                    },
+                    headStyles: {
+                        font: "helvetica",
+                        fontStyle: "bold",
+                        fillColor: [255, 255, 255],
+                        textColor: [0, 0, 0],
+                        fontSize: 14,
+                        lineWidth: 0.5,
+                        lineColor: [0, 0, 0]
+                    },
+                    columnStyles: {
+                        0: { halign: 'center', cellWidth: 40 }
+                    }
                 });
                 y = doc.lastAutoTable.finalY + 20;
                 allStudents.push(...studentsData);
             }
 
-            // Generate tables for dynamic slots if they have data
             for (let i = 0; i < dynamicTables.length; i++) {
                 const slotData = dynamicTables[i].getData();
                 if (slotData.length) {
@@ -492,28 +568,87 @@
                         doc.addPage();
                         y = 40;
                     }
-                    doc.text(`Slot ${i + 2} Members`, margin, y);
-                    y += 10;
+                    
+                    const slotTitle = document.getElementById(`slotTitle${i + 2}`).value;
+                    const slotText = document.getElementById(`slotText${i + 2}`).value;
+                    
+                    if (slotTitle) {
+                        y = writeSectionHeader(doc, slotTitle, margin, y, pageW);
+                    }
+                    
+                    if (slotText) {
+                        y = writeBodyText(doc, slotText, margin, y, pageW);
+                    }
+                    
                     doc.autoTable({
                         startY: y,
-                        head: [["Sr", "Name", "Roll", "Division", "Year"]],
-                        body: slotData.map(r => [r.sr, r.name, r.roll, r.division, r.year]),
-                        styles: { lineWidth: 0.5, lineColor: [0, 0, 0] }
+                        head: [["Sr", "Year", "Roll", "Division", "Name"]],
+                        body: slotData.map(r => [r.sr, r.year, r.roll, r.division, r.name]),
+                        styles: { 
+                            font: "helvetica",
+                            fontStyle: "normal",
+                            lineWidth: 0.5, 
+                            lineColor: [0, 0, 0],
+                            fontSize: 11,
+                            cellPadding: 5,
+                            halign: 'left'
+                        },
+                        headStyles: {
+                            font: "helvetica",
+                            fontStyle: "bold",
+                            fillColor: [255, 255, 255],
+                            textColor: [0, 0, 0],
+                            fontSize: 14,
+                            lineWidth: 0.5,
+                            lineColor: [0, 0, 0]
+                        },
+                        columnStyles: {
+                            0: { halign: 'center', cellWidth: 40 }
+                        }
                     });
                     y = doc.lastAutoTable.finalY + 20;
                     allStudents.push(...slotData);
                 }
             }
             
+            const coreTitle = document.getElementById("coreTitle").value;
+            const coreText = document.getElementById("coreText").value;
+            
             const coreData = coreTable.getData();
             if (coreData.length) {
-                doc.text("CORE MEMBERS", margin, y);
-                y += 10;
+                if (coreTitle) {
+                    y = writeSectionHeader(doc, coreTitle, margin, y, pageW);
+                }
+                
+                if (coreText) {
+                    y = writeBodyText(doc, coreText, margin, y, pageW);
+                }
+                
                 doc.autoTable({
                     startY: y,
-                    head: [["Sr","Name","Roll","Division","Year"]],
-                    body: coreData.map(r=>[r.sr,r.name,r.roll,r.division,r.year]),
-                    styles:{lineWidth:0.5,lineColor:[0,0,0]}
+                    head: [["Sr","Year","Roll","Division","Name"]],
+                    body: coreData.map(r=>[r.sr,r.year,r.roll,r.division,r.name]),
+                    styles: { 
+                        font: "helvetica",
+                        fontStyle: "normal",
+                        lineWidth: 0.5, 
+                        lineColor: [0, 0, 0],
+                        fontSize: 11,
+                        cellPadding: 5,
+                        halign: 'left'
+                    },
+                    headStyles: {
+                        font: "helvetica",
+                        fontStyle: "bold",
+                        fillColor: [255, 255, 255],
+                        textColor: [0, 0, 0],
+                        fontSize: 14,
+                        lineWidth: 0.5,
+                        lineColor: [0, 0, 0]
+                    },
+                    columnStyles: {
+                        0: { halign: 'center', cellWidth: 40 }
+                    }
                 });
                 y=doc.lastAutoTable.finalY+20;
                 allStudents.push(...coreData);
@@ -530,13 +665,32 @@
                 y = 40;
             }
 
+            doc.setFont("helvetica", "normal");
+            doc.setFontSize(11);
             doc.text("TOTAL NUMBER OF STUDENTS", margin, y);
             y += 10;
             doc.autoTable({
                 startY: y,
                 head: [uniqueYears.concat("Total")],
                 body: [totalCounts.concat(total)],
-                styles: { lineWidth: 0.5, lineColor: [0, 0, 0] }
+                styles: { 
+                    font: "helvetica",
+                    fontStyle: "normal",
+                    lineWidth: 0.5, 
+                    lineColor: [0, 0, 0],
+                    fontSize: 11,
+                    cellPadding: 5,
+                    halign: 'center'
+                },
+                headStyles: {
+                    font: "helvetica",
+                    fontStyle: "bold",
+                    fillColor: [255, 255, 255],
+                    textColor: [0, 0, 0],
+                    fontSize: 14,
+                    lineWidth: 0.5,
+                    lineColor: [0, 0, 0]
+                }
             });
             y = doc.lastAutoTable.finalY + 40;
 
@@ -546,6 +700,8 @@
 
             const signatureBlockY = pageH - 70;
 
+            doc.setFont("helvetica", "normal");
+            doc.setFontSize(11);
             doc.text(signatureName, margin, signatureBlockY + 10);
             doc.text(signatureTitle, margin, signatureBlockY + 25);
             doc.text(signatureOrg, margin, signatureBlockY + 40);
